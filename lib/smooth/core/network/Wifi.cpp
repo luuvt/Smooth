@@ -25,6 +25,7 @@ limitations under the License.
 #include "smooth/core/util/copy_min_to_buffer.h"
 #include "smooth/core/logging/log.h"
 #include <esp_event.h>
+#include <esp_smartconfig.h>
 
 #ifdef ESP_PLATFORM
 #include "sdkconfig.h"
@@ -44,12 +45,14 @@ namespace smooth::core::network
         tcpip_adapter_init();
         esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &Wifi::wifi_event_callback, this);
         esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &Wifi::wifi_event_callback, this);
+        esp_event_handler_register(SC_EVENT, ESP_EVENT_ANY_ID, &Wifi::wifi_event_callback, this);
     }
 
     Wifi::~Wifi()
     {
         esp_event_handler_unregister(IP_EVENT, ESP_EVENT_ANY_ID, &Wifi::wifi_event_callback);
         esp_event_handler_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, &Wifi::wifi_event_callback);
+        esp_event_handler_unregister(SC_EVENT, ESP_EVENT_ANY_ID, &Wifi::wifi_event_callback);
         esp_wifi_disconnect();
         esp_wifi_stop();
         esp_wifi_deinit();
@@ -194,6 +197,62 @@ namespace smooth::core::network
                 publish_status(false, true);
             }
         }
+        else if (event_base == SC_EVENT) 
+        {
+            if (event_id == SC_EVENT_SCAN_DONE)
+            {
+                Log::info("Application", "Scan done");
+            }
+            else if (event_id == SC_EVENT_FOUND_CHANNEL)
+            {
+                Log::info("Application", "Found channel");
+            }
+            else if (event_id == SC_EVENT_GOT_SSID_PSWD)
+            {
+                Log::info("Application", "Got SSID and password");
+                smartconfig_event_got_ssid_pswd_t *evt = 
+                    reinterpret_cast<smartconfig_event_got_ssid_pswd_t *>(event_data);
+                
+                Log::info("Application", "ssid: {}", evt->ssid);
+                Log::info("Application", "password: {}", evt->password);
+                
+                wifi_config_t config;
+                memset(&config, 0, sizeof(config));
+
+                memcpy(config.sta.ssid, evt->ssid, sizeof(config.sta.ssid));
+                memcpy(config.sta.password, evt->password, sizeof(config.sta.password));
+
+                config.sta.bssid_set = evt->bssid_set;
+                if (config.sta.bssid_set == true) {
+                    memcpy(config.sta.bssid, evt->bssid, sizeof(config.sta.bssid));
+                }
+
+                // Store Wifi settings in RAM - it is the applications responsibility to store settings.
+                esp_wifi_set_storage(WIFI_STORAGE_RAM);
+                ESP_ERROR_CHECK( esp_wifi_disconnect() );
+                esp_wifi_set_config(WIFI_IF_STA, &config);
+                esp_wifi_connect();
+
+            }
+            else if (event_id == SC_EVENT_SEND_ACK_DONE)
+            {
+                esp_smartconfig_stop();
+            }
+        }
+    }
+
+    void Wifi::start_smartconfig()
+    {
+#ifdef ESP_PLATFORM
+        wifi_init_config_t init = WIFI_INIT_CONFIG_DEFAULT();
+        esp_wifi_init(&init);
+        esp_wifi_set_mode(WIFI_MODE_STA);
+        esp_wifi_start();
+
+        ESP_ERROR_CHECK( esp_smartconfig_set_type(SC_TYPE_ESPTOUCH) );
+        smartconfig_start_config_t cfg = SMARTCONFIG_START_CONFIG_DEFAULT();
+        ESP_ERROR_CHECK( esp_smartconfig_start(&cfg) );
+#endif
     }
 
     std::string Wifi::get_mac_address()

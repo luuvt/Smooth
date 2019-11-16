@@ -82,6 +82,9 @@ namespace smooth::core::network
             /// \param max_conn maximum number of clients to connect to this AP
             void start_softap(uint8_t max_conn = 1);
 
+            // Initiates smartconfig wifi.
+            void start_smartconfig();
+
         private:
             void connect() const;
 

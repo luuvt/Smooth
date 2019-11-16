@@ -3,6 +3,7 @@
 const char* WIFI_EVENT = "wifi_event";
 const char* IP_EVENT = "ip_event";
 const char* ETH_EVENT = "eth_event";
+const char* SC_EVENT = "sc_event";
 
 esp_err_t esp_event_loop_create_default()
 {

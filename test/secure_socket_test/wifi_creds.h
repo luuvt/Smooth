@@ -17,5 +17,5 @@ limitations under the License.
 
 #pragma once
 
-#define WIFI_SSID "Your SSID"
-#define WIFI_PASSWORD "Your password"
+#define WIFI_SSID "fake"
+#define WIFI_PASSWORD "0123456789@q"
