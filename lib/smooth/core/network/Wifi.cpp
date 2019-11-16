@@ -88,8 +88,8 @@ namespace smooth::core::network
 
         config.sta.bssid_set = false;
 
-        // Store Wifi settings in RAM - it is the applications responsibility to store settings.
-        esp_wifi_set_storage(WIFI_STORAGE_RAM);
+        // Store Wifi settings in flash - it is the applications responsibility to store settings.
+        esp_wifi_set_storage(WIFI_STORAGE_FLASH); // WIFI_STORAGE_RAM
         esp_wifi_set_config(WIFI_IF_STA, &config);
 
         connect();
@@ -253,6 +253,23 @@ namespace smooth::core::network
         smartconfig_start_config_t cfg = SMARTCONFIG_START_CONFIG_DEFAULT();
         ESP_ERROR_CHECK( esp_smartconfig_start(&cfg) );
 #endif
+    }
+
+    std::tuple<bool, std::string, std::string> Wifi::get_config()
+    {
+        /* Get Wi-Fi Station configuration */
+        wifi_config_t wifi_cfg;
+
+        if (esp_wifi_get_config(WIFI_IF_STA, &wifi_cfg) != ESP_OK) {
+            Log::error("Wifi", "wifi get config failed ssid: {} password: {}", 
+                wifi_cfg.sta.ssid, wifi_cfg.sta.password);
+            return std::make_tuple( false, "", "");
+        }
+
+        std::string wifi_ssid = reinterpret_cast<char*>(wifi_cfg.sta.ssid);
+        std::string wifi_password = reinterpret_cast<char*>(wifi_cfg.sta.password);
+
+        return std::make_tuple(true, std::move(wifi_ssid),std::move(wifi_password));
     }
 
     std::string Wifi::get_mac_address()

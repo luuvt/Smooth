@@ -85,6 +85,8 @@ namespace smooth::core::network
             // Initiates smartconfig wifi.
             void start_smartconfig();
 
+            // Get status config wifi
+            std::tuple<bool, std::string, std::string> get_config();
         private:
             void connect() const;
 

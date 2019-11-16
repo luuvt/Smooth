@@ -25,6 +25,8 @@ esp_err_t esp_wifi_set_storage(wifi_storage_t storage);
 
 esp_err_t esp_wifi_set_config(wifi_interface_t interface, wifi_config_t* conf);
 
+esp_err_t esp_wifi_get_config(wifi_interface_t interface, wifi_config_t *conf);
+
 esp_err_t esp_wifi_connect();
 
 esp_err_t esp_wifi_get_mac(wifi_interface_t ifx, uint8_t mac[6]);

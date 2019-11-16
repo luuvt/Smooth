@@ -45,6 +45,11 @@ esp_err_t esp_wifi_set_config(wifi_interface_t /*interface*/, wifi_config_t*/*co
     return ESP_OK;
 }
 
+esp_err_t esp_wifi_get_config(wifi_interface_t interface, wifi_config_t *conf)
+{
+    return ESP_OK;
+}
+
 esp_err_t esp_wifi_connect()
 {
     return ESP_OK;
