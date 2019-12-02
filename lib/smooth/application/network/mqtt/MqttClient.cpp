@@ -103,6 +103,12 @@ namespace smooth::application::network::mqtt
         }
     }
 
+    void MqttClient::set_authorization(const std::string& username, const std::string& password)
+    {
+        this->username = username;
+        this->password = password;
+    }
+
     bool MqttClient::publish(const std::string& topic, const std::string& msg, mqtt::QoS qos, bool retain)
     {
         return publish(topic,
@@ -154,6 +160,16 @@ namespace smooth::application::network::mqtt
         }
 
         return res;
+    }
+
+    const std::string& MqttClient::get_username() const
+    {
+        return username;
+    }
+
+    const std::string& MqttClient::get_password() const
+    {
+        return password;
     }
 
     const std::string& MqttClient::get_client_id() const

@@ -26,7 +26,11 @@ using namespace std;
 namespace smooth::application::network::mqtt::packet
 {
     // Minimum connect packet
-    Connect::Connect(const std::string& client_id, std::chrono::seconds keep_alive, bool clean_session)
+    Connect::Connect(const std::string& client_id,
+                    const std::string& username,
+                    const std::string& password,
+                    std::chrono::seconds keep_alive, 
+                    bool clean_session)
             : MQTTPacket(), clean_session(clean_session)
     {
         set_header(PacketType::CONNECT, 0);
@@ -39,6 +43,13 @@ namespace smooth::application::network::mqtt::packet
         // Protocol Level
         variable_header.push_back(4); // v3.1.1
 
+        bool is_authorization = false;
+
+        if (username.length() && password.length())
+        {
+            is_authorization = true;
+        }
+
         // Connect Flags
         variable_header.push_back(0);
         core::util::ByteSet connect_flags(0);
@@ -48,8 +59,8 @@ namespace smooth::application::network::mqtt::packet
         connect_flags.set(3, false); // Will QoS LSB
         connect_flags.set(4, false); // Will QoS MSB
         connect_flags.set(5, false); // Will retain
-        connect_flags.set(6, false); // Password
-        connect_flags.set(7, false); // User name
+        connect_flags.set(6, is_authorization); // Password
+        connect_flags.set(7, is_authorization); // User name
         variable_header[variable_header.size() - 1] = connect_flags;
 
         // Keep Alive - limit range to 0 ~ std::numeric_limits<uint16_t>::max()
@@ -66,8 +77,13 @@ namespace smooth::application::network::mqtt::packet
 
         // Will Topic
         // Will Message
-        // User Name
-        // Password
+        if (is_authorization)
+        {
+            // User Name
+            append_string(username, variable_header);
+            // Password
+            append_string(password, variable_header);
+        }
 
         apply_constructed_data(variable_header);
     }

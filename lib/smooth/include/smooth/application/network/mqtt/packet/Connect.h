@@ -29,7 +29,11 @@ namespace smooth::application::network::mqtt::packet
         public:
             Connect() = default;
 
-            Connect(const std::string& client_id, std::chrono::seconds keep_alive, bool clean_session = true);
+            Connect(const std::string& client_id, 
+                const std::string& username,
+                const std::string& password,
+                std::chrono::seconds keep_alive,
+                bool clean_session = true);
 
             bool get_clean_session();
 

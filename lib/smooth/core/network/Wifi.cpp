@@ -89,7 +89,7 @@ namespace smooth::core::network
         config.sta.bssid_set = false;
 
         // Store Wifi settings in flash - it is the applications responsibility to store settings.
-        esp_wifi_set_storage(WIFI_STORAGE_FLASH); // WIFI_STORAGE_RAM
+        esp_wifi_set_storage(WIFI_STORAGE_RAM); // WIFI_STORAGE_RAM
         esp_wifi_set_config(WIFI_IF_STA, &config);
 
         connect();
@@ -236,6 +236,7 @@ namespace smooth::core::network
             }
             else if (event_id == SC_EVENT_SEND_ACK_DONE)
             {
+                Log::info("Application", "send ack done");
                 esp_smartconfig_stop();
             }
         }

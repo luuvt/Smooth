@@ -25,7 +25,11 @@ namespace smooth::application::network::mqtt::state
 {
     void ConnectToBrokerState::enter_state()
     {
-        packet::Connect con(fsm.get_mqtt().get_client_id(), fsm.get_mqtt().get_keep_alive());
+        packet::Connect con(
+            fsm.get_mqtt().get_client_id(),
+            fsm.get_mqtt().get_username(),
+            fsm.get_mqtt().get_password(),
+            fsm.get_mqtt().get_keep_alive());
 
         is_using_clean_session = con.get_clean_session();
         fsm.get_mqtt().send_packet(con);

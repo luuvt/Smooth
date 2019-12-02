@@ -55,5 +55,9 @@ namespace smooth::application::network::mqtt
 
             virtual std::weak_ptr<core::ipc::TaskEventQueue<std::pair<std::string, std::vector<uint8_t>>>>
             get_application_queue() = 0;
+
+            virtual const std::string& get_username() const = 0;
+
+            virtual const std::string& get_password() const = 0;
     };
 }

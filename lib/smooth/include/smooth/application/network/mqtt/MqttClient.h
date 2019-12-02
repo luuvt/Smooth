@@ -79,6 +79,8 @@ namespace smooth::application::network::mqtt
             connect_to(const std::shared_ptr<smooth::core::network::InetAddress>& server_address,
                        bool enable_auto_reconnect);
 
+            void set_authorization(const std::string& username, const std::string& password);
+
             void reconnect() override
             {
                 if (address)
@@ -145,6 +147,10 @@ namespace smooth::application::network::mqtt
 
             void event(const smooth::core::network::NetworkStatus& event) override;
 
+            const std::string& get_username() const override;
+
+            const std::string& get_password() const override;
+            
             const std::string& get_client_id() const override;
 
             std::chrono::seconds get_keep_alive() const override;
@@ -204,5 +210,7 @@ namespace smooth::application::network::mqtt
             bool connected = false;
             std::mutex address_guard{};
             std::shared_ptr<smooth::core::network::BufferContainer<packet::MQTTProtocol>> buff{};
+            std::string username;
+            std::string password;
     };
 }

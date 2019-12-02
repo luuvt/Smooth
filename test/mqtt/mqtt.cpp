@@ -29,7 +29,7 @@ using namespace smooth::application::network::mqtt;
 
 namespace mqtt
 {
-    static const char* broker = "192.168.10.245";
+    static const char* broker = "192.168.1.201";
 #ifdef ESP_PLATFORM
     static const char* client_id = "ESP32";
 #else
@@ -53,9 +53,13 @@ namespace mqtt
         wifi.set_auto_connect(true);
         wifi.set_ap_credentials(WIFI_SSID, WIFI_PASSWORD);
         wifi.connect_to_ap();
+        
+        client.set_authorization(
+            "9e77d22a-7b80-42a4-baca-c8a67ea809a9",
+            "2e5d1300-a190-4d4d-af6d-b2d4104c2774");
 
         client.connect_to(std::make_shared<smooth::core::network::IPv4>(broker, 1883), true);
-        client.subscribe("network_test", QoS::EXACTLY_ONCE);
+        client.subscribe("network_test", QoS::AT_LEAST_ONCE);
         client.subscribe("$SYS/broker/uptime", QoS::AT_LEAST_ONCE);
         send_message();
     }
@@ -71,7 +75,7 @@ namespace mqtt
 
     void App::tick()
     {
-        client.publish("network_test", "Message", QoS::EXACTLY_ONCE, false);
+        client.publish("network_test", "Message", QoS::AT_LEAST_ONCE, false);
     }
 
     void App::send_message()
@@ -83,7 +87,7 @@ namespace mqtt
 
         if (v == 1)
         {
-            client.publish("network_test", rep, QoS::EXACTLY_ONCE, false);
+            client.publish("network_test", rep, QoS::AT_LEAST_ONCE, false);
         }
         else if (v == 2)
         {

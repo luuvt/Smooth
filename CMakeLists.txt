@@ -21,7 +21,7 @@ cmake_minimum_required(VERSION 3.10)
 set(CMAKE_CXX_STANDARD 17)
 
 # Select the test project to build
-set(selected_test_project server_socket_test)
+set(selected_test_project mqtt)
 
 # For Linux builds, you may enable address sanitizer
 set(SMOOTH_ENABLE_ASAN 0)
