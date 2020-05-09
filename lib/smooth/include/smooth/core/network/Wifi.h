@@ -100,6 +100,8 @@ namespace smooth::core::network
 
             bool auto_connect_to_ap = false;
             bool connected_to_ap = false;
+            volatile bool is_smartconfig = false;
+
             std::string host_name = "Smooth-Wifi";
             std::string ssid{};
 

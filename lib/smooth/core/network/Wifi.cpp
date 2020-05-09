@@ -52,7 +52,7 @@ namespace smooth::core::network
                                            &instance_wifi_event);
 
         esp_event_handler_instance_register(IP_EVENT,
-                                           ESP_EVENT_ANY_ID,
+                                           IP_EVENT_STA_GOT_IP,
                                            &Wifi::wifi_event_callback,
                                            this,
                                            &instance_ip_event);
@@ -61,12 +61,12 @@ namespace smooth::core::network
                                            ESP_EVENT_ANY_ID,
                                            &Wifi::wifi_event_callback,
                                            this,
-                                           &instance_ip_event);
+                                           &instance_wifi_event);
     }
 
     Wifi::~Wifi()
     {
-        esp_event_handler_instance_unregister(IP_EVENT, ESP_EVENT_ANY_ID, instance_ip_event);
+        esp_event_handler_instance_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, instance_ip_event);
         esp_event_handler_instance_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, instance_wifi_event);
         esp_event_handler_instance_unregister(SC_EVENT, ESP_EVENT_ANY_ID, instance_wifi_event);
         esp_wifi_disconnect();
@@ -145,7 +145,9 @@ namespace smooth::core::network
         {
             if (event_id == WIFI_EVENT_STA_START)
             {
-                esp_netif_set_hostname(wifi->interface, wifi->host_name.c_str());
+                if (!wifi->is_smartconfig) {
+                    esp_netif_set_hostname(wifi->interface, wifi->host_name.c_str());
+                }
             }
             else if (event_id == WIFI_EVENT_STA_CONNECTED)
             {
@@ -252,7 +254,7 @@ namespace smooth::core::network
                 ESP_ERROR_CHECK( esp_wifi_disconnect() );
                 esp_wifi_set_config(WIFI_IF_STA, &config);
                 esp_wifi_connect();
-
+                wifi->is_smartconfig = false;
             }
             else if (event_id == SC_EVENT_SEND_ACK_DONE)
             {
@@ -265,6 +267,9 @@ namespace smooth::core::network
     void Wifi::start_smartconfig()
     {
 #ifdef ESP_PLATFORM
+        is_smartconfig = true;
+        esp_netif_t *sta_netif = esp_netif_create_default_wifi_sta();
+        assert(sta_netif);
         wifi_init_config_t init = WIFI_INIT_CONFIG_DEFAULT();
         esp_wifi_init(&init);
         esp_wifi_set_mode(WIFI_MODE_STA);
