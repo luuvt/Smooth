@@ -145,7 +145,7 @@ namespace smooth::core::network
         {
             if (event_id == WIFI_EVENT_STA_START)
             {
-                if (!wifi->is_smartconfig) {
+                if (!wifi->is_smartconfig && wifi->interface) {
                     esp_netif_set_hostname(wifi->interface, wifi->host_name.c_str());
                 }
             }

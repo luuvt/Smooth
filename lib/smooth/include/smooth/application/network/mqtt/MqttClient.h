@@ -42,7 +42,7 @@ limitations under the License.
 #include "smooth/application/network/mqtt/Publication.h"
 #include "smooth/application/network/mqtt/Subscription.h"
 #include "smooth/core/network/BufferContainer.h"
-
+#include "smooth/core/network/SecureSocket.h"
 namespace smooth::application::network::mqtt
 {
     typedef std::pair<std::string, std::vector<uint8_t>> MQTTData;
@@ -134,6 +134,8 @@ namespace smooth::application::network::mqtt
 
             static std::string get_payload(const MQTTData& data);
 
+            bool load_certificate(const std::vector<unsigned char> ca_cert);
+
         private:
             void event(const core::network::event::TransmitBufferEmptyEvent& event) override;
 
@@ -200,6 +202,7 @@ namespace smooth::application::network::mqtt
             std::string client_id;
             std::chrono::seconds keep_alive;
             std::shared_ptr<smooth::core::network::ISocket> mqtt_socket;
+            std::shared_ptr<smooth::core::network::SecureSocket<packet::MQTTProtocol>> mqtts_socket{};
             core::timer::TimerOwner reconnect_timer;
             core::timer::TimerOwner keep_alive_timer;
             smooth::application::network::mqtt::state::MqttFSM<state::MQTTBaseState> fsm;
@@ -212,5 +215,8 @@ namespace smooth::application::network::mqtt
             std::shared_ptr<smooth::core::network::BufferContainer<packet::MQTTProtocol>> buff{};
             std::string username;
             std::string password;
+            
+            bool is_mqtts = false;
+            std::unique_ptr<smooth::core::network::MBedTLSContext> tls_context{};
     };
 }

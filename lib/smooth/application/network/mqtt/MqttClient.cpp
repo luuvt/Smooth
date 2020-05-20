@@ -50,6 +50,7 @@ namespace smooth::application::network::mqtt
               client_id(mqtt_client_id),
               keep_alive(keep_alive),
               mqtt_socket(),
+              mqtts_socket(),
               reconnect_timer(MQTT_FSM_RECONNECT_TIMER_ID,
                               timer_events,
                               false,
@@ -237,25 +238,62 @@ namespace smooth::application::network::mqtt
             buff->get_tx_buffer().clear();
             buff->get_rx_buffer().clear();
 
-            if (mqtt_socket)
+            if (is_mqtts)
             {
-                mqtt_socket->stop("MQTT disconnect");
-                mqtt_socket.reset();
+                if (mqtts_socket)
+                {
+                    mqtts_socket->stop("MQTTS disconnect");
+                    mqtts_socket.reset();
+                }
             }
+            else {
+                if (mqtt_socket)
+                {
+                    mqtt_socket->stop("MQTT disconnect");
+                    mqtt_socket.reset();
+                }
+            }
+            
         }
         else if (event.get_type() == event::BaseEvent::CONNECT)
         {
-            if (mqtt_socket)
+            if (is_mqtts)
             {
-                mqtt_socket->stop("MQTT (re)connect event");
+                if (mqtts_socket)
+                {
+                    mqtts_socket->stop("MQTTS (re)connect event");
+                }
+
+                buff->clear();
+
+                mqtts_socket = core::network::SecureSocket<packet::MQTTProtocol>::create(buff, tls_context->create_context());
+                mqtts_socket->set_receive_timeout(keep_alive + seconds{ 1 });
+                mqtts_socket->start(address);
+            } 
+            else 
+            {
+                if (mqtt_socket)
+                {
+                    mqtt_socket->stop("MQTT (re)connect event");
+                }
+
+                buff->clear();
+
+                mqtt_socket = core::network::Socket<packet::MQTTProtocol>::create(buff, seconds{ 1 });
+                mqtt_socket->set_receive_timeout(keep_alive + seconds{ 1 });
+                mqtt_socket->start(address);
             }
-
-            buff->clear();
-
-            mqtt_socket = core::network::Socket<packet::MQTTProtocol>::create(buff, seconds{ 1 });
-            mqtt_socket->set_receive_timeout(keep_alive + seconds{ 1 });
-            mqtt_socket->start(address);
+            
         }
+    }
+
+    bool MqttClient::load_certificate(const std::vector<unsigned char> ca_cert)
+    {
+        is_mqtts = true;
+        tls_context = std::make_unique<smooth::core::network::MBedTLSContext>();
+        tls_context->init_client(ca_cert);
+        
+        return true;
     }
 
     void MqttClient::event(const smooth::core::network::NetworkStatus& event)
