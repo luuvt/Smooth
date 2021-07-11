@@ -86,14 +86,19 @@ namespace smooth::core::network
             /// \param max_conn maximum number of clients to connect to this AP
             void start_softap(uint8_t max_conn = 1);
 
-            // Get is SmartConfig
-            bool is_smart_config() { return is_smartconfig; }
-            
             // Initiates smartconfig wifi.
             void start_smartconfig();
 
+            void start_provision();
+
+            // Get is SmartConfig
+            bool is_smart_config() { return is_smartconfig; }
+            
             // Get status config wifi
             std::tuple<bool, std::string, std::string> get_config();
+
+            // Get rssi
+            int get_rssi();
         private:
             void connect() const;
 
