@@ -1,0 +1,47 @@
+{
+    "configurations": [
+        {
+            "name": "xtensa",
+            "includePath": [
+                "lib/smooth/include/**",
+                "externals/**",
+                "$IDF_PATH/components/**",
+                "$IDF_TOOLS_PATH/tools/xtensa-esp32-elf/*/xtensa-esp32-elf/xtensa-esp32-elf/include/**"
+            ],
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "$IDF_TOOLS_PATH/tools/xtensa-esp32-elf/*/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "defines": [
+            ],
+            "browse": {
+                "path": [
+                    "$IDF_PATH",
+                    "lib/smooth/include"
+                ]
+            }
+        },
+        {
+            "name": "host",
+            "includePath": [
+                "lib/smooth/include/**",
+                "externals/**",
+                "mock-idf/components/**",
+                "$IDF_TOOLS_PATH/tools/xtensa-esp32-elf/*/xtensa-esp32-elf/include/**"
+            ],
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "defines": [
+                "ESP_PLATFORM=0"
+            ],
+            "browse": {
+                "path": [
+                    "lib/smooth/include"
+                ]
+            }
+        }
+    ],
+    "version": 4
+}

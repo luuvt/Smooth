@@ -15,17 +15,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "smooth/core/network/Wifi.h"
 #include <cstring>
 #include <sstream>
-#include <esp_wifi_types.h>
-#include <tcpip_adapter.h>
+#include "smooth/core/network/Wifi.h"
 #include "smooth/core/network/NetworkStatus.h"
 #include "smooth/core/ipc/Publisher.h"
 #include "smooth/core/util/copy_min_to_buffer.h"
 #include "smooth/core/logging/log.h"
+<<<<<<< HEAD
 #include <esp_event.h>
 #include <esp_smartconfig.h>
+=======
+>>>>>>> upstream/master
 
 #ifdef ESP_PLATFORM
 #include "sdkconfig.h"
@@ -38,24 +39,45 @@ using namespace smooth::core;
 
 namespace smooth::core::network
 {
-    ip4_addr_t Wifi::ip = { 0 };
+    esp_netif_ip_info_t Wifi::ip_info;
 
     Wifi::Wifi()
     {
+<<<<<<< HEAD
         tcpip_adapter_init();
         esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &Wifi::wifi_event_callback, this);
         esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &Wifi::wifi_event_callback, this);
         esp_event_handler_register(SC_EVENT, ESP_EVENT_ANY_ID, &Wifi::wifi_event_callback, this);
+=======
+        esp_netif_init();
+        esp_event_handler_instance_register(WIFI_EVENT,
+                                           ESP_EVENT_ANY_ID,
+                                           &Wifi::wifi_event_callback,
+                                           this,
+                                           &instance_wifi_event);
+
+        esp_event_handler_instance_register(IP_EVENT,
+                                           ESP_EVENT_ANY_ID,
+                                           &Wifi::wifi_event_callback,
+                                           this,
+                                           &instance_ip_event);
+>>>>>>> upstream/master
     }
 
     Wifi::~Wifi()
     {
+<<<<<<< HEAD
         esp_event_handler_unregister(IP_EVENT, ESP_EVENT_ANY_ID, &Wifi::wifi_event_callback);
         esp_event_handler_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, &Wifi::wifi_event_callback);
         esp_event_handler_unregister(SC_EVENT, ESP_EVENT_ANY_ID, &Wifi::wifi_event_callback);
+=======
+        esp_event_handler_instance_unregister(IP_EVENT, ESP_EVENT_ANY_ID, instance_ip_event);
+        esp_event_handler_instance_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, instance_wifi_event);
+>>>>>>> upstream/master
         esp_wifi_disconnect();
         esp_wifi_stop();
         esp_wifi_deinit();
+        esp_netif_deinit();
     }
 
     void Wifi::set_host_name(const std::string& name)
@@ -92,6 +114,9 @@ namespace smooth::core::network
         esp_wifi_set_storage(WIFI_STORAGE_RAM); // WIFI_STORAGE_RAM
         esp_wifi_set_config(WIFI_IF_STA, &config);
 
+        close_if();
+        interface = esp_netif_create_default_wifi_sta();
+
         connect();
     }
 
@@ -125,7 +150,7 @@ namespace smooth::core::network
         {
             if (event_id == WIFI_EVENT_STA_START)
             {
-                tcpip_adapter_set_hostname(TCPIP_ADAPTER_IF_STA, wifi->host_name.c_str());
+                esp_netif_set_hostname(wifi->interface, wifi->host_name.c_str());
             }
             else if (event_id == WIFI_EVENT_STA_CONNECTED)
             {
@@ -133,7 +158,10 @@ namespace smooth::core::network
             }
             else if (event_id == WIFI_EVENT_STA_DISCONNECTED)
             {
-                wifi->ip.addr = 0;
+                wifi->ip_info.ip.addr = 0;
+                wifi->ip_info.netmask = wifi->ip_info.ip;
+                wifi->ip_info.gw = wifi->ip_info.ip;
+
                 wifi->connected_to_ap = false;
                 publish_status(wifi->connected_to_ap, true);
 
@@ -145,12 +173,14 @@ namespace smooth::core::network
             }
             else if (event_id == WIFI_EVENT_AP_START)
             {
-                wifi->ip.addr = 0xC0A80401; // 192.168.4.1
+                wifi->ip_info.ip.addr = 0xC0A80401; // 192.168.4.1
                 publish_status(true, true);
             }
             else if (event_id == WIFI_EVENT_AP_STOP)
             {
-                wifi->ip.addr = 0;
+                wifi->ip_info.ip.addr = 0;
+                wifi->ip_info.netmask = wifi->ip_info.ip;
+                wifi->ip_info.gw = wifi->ip_info.ip;
                 Log::info("SoftAP", "AP stopped");
                 publish_status(false, true);
             }
@@ -189,11 +219,13 @@ namespace smooth::core::network
                 auto ip_changed = event_id == IP_EVENT_STA_GOT_IP ?
                                   reinterpret_cast<ip_event_got_ip_t*>(event_data)->ip_changed : true;
                 publish_status(true, ip_changed);
-                wifi->ip.addr = reinterpret_cast<ip_event_got_ip_t*>(event_data)->ip_info.ip.addr;
+                wifi->ip_info = reinterpret_cast<ip_event_got_ip_t*>(event_data)->ip_info;
             }
             else if (event_id == IP_EVENT_STA_LOST_IP)
             {
-                wifi->ip.addr = 0;
+                wifi->ip_info.ip.addr = 0;
+                wifi->ip_info.netmask = wifi->ip_info.ip;
+                wifi->ip_info.gw = wifi->ip_info.ip;
                 publish_status(false, true);
             }
         }
@@ -273,6 +305,15 @@ namespace smooth::core::network
         return std::make_tuple(true, std::move(wifi_ssid),std::move(wifi_password));
     }
 
+    void Wifi::close_if()
+    {
+        if (interface)
+        {
+            esp_netif_destroy(interface);
+            interface = nullptr;
+        }
+    }
+
     std::string Wifi::get_mac_address()
     {
         std::stringstream mac;
@@ -329,7 +370,28 @@ namespace smooth::core::network
     // It should be called from the main thread only!
     uint32_t Wifi::get_local_ip()
     {
-        return ip.addr;
+        return ip_info.ip.addr;
+    }
+
+    std::string Wifi::get_local_ip_address()
+    {
+        std::array<char, 16> str_ip;
+
+        return esp_ip4addr_ntoa(&ip_info.ip, str_ip.data(), 16);
+    }
+
+    std::string Wifi::get_netmask()
+    {
+        std::array<char, 16> str_mask;
+
+        return esp_ip4addr_ntoa(&ip_info.netmask, str_mask.data(), 16);
+    }
+
+    std::string Wifi::get_gateway()
+    {
+        std::array<char, 16> str_gw;
+
+        return esp_ip4addr_ntoa(&ip_info.gw, str_gw.data(), 16);
     }
 
     void Wifi::start_softap(uint8_t max_conn)
@@ -345,8 +407,11 @@ namespace smooth::core::network
         config.ap.max_connection = max_conn;
         config.ap.authmode = password.empty() ? WIFI_AUTH_OPEN : WIFI_AUTH_WPA_WPA2_PSK;
 
+        close_if();
+        interface = esp_netif_create_default_wifi_ap();
+
         esp_wifi_set_mode(WIFI_MODE_AP);
-        esp_wifi_set_config(ESP_IF_WIFI_AP, &config);
+        esp_wifi_set_config(WIFI_IF_AP, &config);
         esp_wifi_start();
 
         Log::info("SoftAP", "SSID: {}; Auth {}", ssid, (password.empty() ? "Open" : "WPA2/PSK"));

@@ -19,7 +19,13 @@ limitations under the License.
 
 #include <string>
 #include <array>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <esp_wifi.h>
+#include <esp_netif.h>
+#include <esp_event.h>
+#pragma GCC diagnostic pop
 #include "smooth/core/ipc/IEventListener.h"
 
 namespace smooth::core::network
@@ -78,6 +84,12 @@ namespace smooth::core::network
 
             [[nodiscard]] static uint32_t get_local_ip();
 
+            [[nodiscard]] static std::string get_local_ip_address();
+
+            [[nodiscard]] static std::string get_netmask();
+
+            [[nodiscard]] static std::string get_gateway();
+
             /// Start providing an access point
             /// \param max_conn maximum number of clients to connect to this AP
             void start_softap(uint8_t max_conn = 1);
@@ -90,6 +102,8 @@ namespace smooth::core::network
         private:
             void connect() const;
 
+            void close_if();
+
             static void publish_status(bool connected, bool ip_changed);
 
             bool auto_connect_to_ap = false;
@@ -98,6 +112,11 @@ namespace smooth::core::network
             std::string ssid{};
 
             std::string password{};
-            static ip4_addr_t ip;
+
+            esp_netif_t* interface{ nullptr };
+            esp_event_handler_instance_t instance_wifi_event{};
+            esp_event_handler_instance_t instance_ip_event{};
+
+            static esp_netif_ip_info_t ip_info;
     };
 }

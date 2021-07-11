@@ -1,0 +1,20 @@
+{
+    "name": "Smooth",
+    "dockerComposeFile": [
+        "docker-compose.yml"
+    ],
+    "service": "smooth",
+    "workspaceFolder": "/src",
+    "settings": {
+        "terminal.integrated.shell.linux": null,
+        "terminal.integrated.detectLocale": "off",
+        "git.enabled": false,
+        "remote.autoForwardPorts": false,
+        "extensions.ignoreRecommendations": true
+    },
+    "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools"
+    ],
+    "shutdownAction": "none"
+}

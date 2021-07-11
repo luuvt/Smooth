@@ -4,18 +4,26 @@ set(smooth_dir ${CMAKE_CURRENT_LIST_DIR}/smooth)
 set(smooth_inc_dir ${CMAKE_CURRENT_LIST_DIR}/smooth/include/smooth)
 
 set(SMOOTH_SOURCES
+        ${smooth_dir}/application/display/LCDSpi.cpp
         ${smooth_dir}/application/hash/base64.cpp
         ${smooth_dir}/application/hash/sha.cpp
         ${smooth_dir}/application/io/i2c/ADS1115.cpp
         ${smooth_dir}/application/io/i2c/BME280.cpp
         ${smooth_dir}/application/io/i2c/MCP23017.cpp
         ${smooth_dir}/application/io/i2c/MCP23017.cpp
+        ${smooth_dir}/application/io/i2c/DHT12.cpp
+        ${smooth_dir}/application/io/i2c/AxpPMU.cpp
+        ${smooth_dir}/application/io/i2c/PCF8563.cpp
+        ${smooth_dir}/application/io/i2c/SHT30.cpp
+        ${smooth_dir}/application/io/spi/BME280SPI.cpp
+        ${smooth_dir}/application/io/spi/BME280Core.cpp
         ${smooth_dir}/application/io/wiegand/Wiegand.cpp
         ${smooth_dir}/application/network/http/HTTPProtocol.cpp
         ${smooth_dir}/application/network/http/HTTPServerClient.cpp
         ${smooth_dir}/application/network/http/http_utils.cpp
         ${smooth_dir}/application/network/http/regular/HTTPHeaderDef.cpp
         ${smooth_dir}/application/network/http/regular/HTTPPacket.cpp
+        ${smooth_dir}/application/network/http/regular/HTTPRequestHandler.cpp
         ${smooth_dir}/application/network/http/regular/MIMEParser.cpp
         ${smooth_dir}/application/network/http/regular/RegularHTTPProtocol.cpp
         ${smooth_dir}/application/network/http/regular/responses/ErrorResponse.cpp
@@ -68,6 +76,8 @@ set(SMOOTH_SOURCES
         ${smooth_dir}/core/io/i2c/I2CCommandLink.cpp
         ${smooth_dir}/core/io/i2c/I2CMasterDevice.cpp
         ${smooth_dir}/core/io/i2c/Master.cpp
+        ${smooth_dir}/core/io/spi/Master.cpp
+        ${smooth_dir}/core/io/spi/SPIDevice.cpp
         ${smooth_dir}/core/io/Input.cpp
         ${smooth_dir}/core/io/InterruptInput.cpp
         ${smooth_dir}/core/io/InterruptInputCB.cpp
@@ -88,8 +98,21 @@ set(SMOOTH_SOURCES
         ${smooth_dir}/core/timer/Timer.cpp
         ${smooth_dir}/core/timer/TimerService.cpp
         ${smooth_dir}/core/util/string_util.cpp
+        ${smooth_inc_dir}/application/display/DisplayPin.h
+        ${smooth_inc_dir}/application/display/LCDSpi.h
+        ${smooth_inc_dir}/application/display/DisplayTypes.h
+        ${smooth_inc_dir}/application/display/LCDSpiCommands.h
+        ${smooth_inc_dir}/application/display/ILI9341.h
+        ${smooth_inc_dir}/application/display/SH1107.h
+        ${smooth_inc_dir}/application/display/ST7735.h
+        ${smooth_inc_dir}/application/io/spi/BME280SPI.h
+        ${smooth_inc_dir}/application/io/spi/BME280Core.h
         ${smooth_inc_dir}/application/io/i2c/ADS1115.h
         ${smooth_inc_dir}/application/io/i2c/MCP23017.h
+        ${smooth_inc_dir}/application/io/i2c/DHT12.h
+        ${smooth_inc_dir}/application/io/i2c/AxpPMU.h
+        ${smooth_inc_dir}/application/io/i2c/AxpRegisters.h
+        ${smooth_inc_dir}/application/io/i2c/PCF8563.h
         ${smooth_inc_dir}/application/network/http/HTTPProtocol.h
         ${smooth_inc_dir}/application/network/http/HTTPServer.h
         ${smooth_inc_dir}/application/network/http/HTTPServerClient.h
@@ -154,7 +177,9 @@ set(SMOOTH_SOURCES
         ${smooth_inc_dir}/core/io/i2c/I2CCommandLink.h
         ${smooth_inc_dir}/core/io/i2c/I2CMasterDevice.h
         ${smooth_inc_dir}/core/io/i2c/Master.h
-        ${smooth_inc_dir}/core/io/Input.h
+        ${smooth_inc_dir}/core/io/spi/Master.h
+        ${smooth_inc_dir}/core/io/spi/SPIDevice.h
+        ${smooth_inc_dir}/core/io/spi/SpiDmaFixedBuffer.h
         ${smooth_inc_dir}/core/io/Input.h
         ${smooth_inc_dir}/core/io/InterruptInput.h
         ${smooth_inc_dir}/core/io/InterruptInputCB.h

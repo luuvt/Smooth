@@ -26,7 +26,8 @@ with the only consideration that the mocks do not actually simulate the hardware
 * ESP-IDF v4.x
 * GCC 8
 
-Smooth is developed on a Linux machine so how well it compiles using the Windows toolset povided by Espressif is unknown. 
+Smooth is developed on a Linux machine so how well it compiles using the Windows toolset povided by Espressif is unknown.
+If you are working on Windows or you don't want to install the dependencies on your local machine you can use the docker images which are provided.
 
 ### Provided functionality
 
@@ -46,6 +47,7 @@ Smooth is developed on a Linux machine so how well it compiles using the Windows
 - Input
 - Input with interrupt to event translation
 - I2C Master Device class
+- SPI Master Device class
 - Flash and SDCard initialization.
 
 ### Application level
@@ -54,9 +56,21 @@ Smooth is developed on a Linux machine so how well it compiles using the Windows
   - Simple templates 
   - Websocket support
 - MQTT Client
-- Sensor BME280
-- 16 channel I/O expander MCP23017
-- RGB LED, i.e. WS2812(B), SK6812, WS2813, (a.k.a NeoPixel). 
+- Device support
+  - SPI
+    - Sensors
+      - BME280
+    - Displays
+      - ILI9341
+      - ST7735
+      - SH1107
+  - I2C
+    - BME280
+    - MCP23017
+    - DHT12
+    - AxpPMU
+    - PCF8563
+  - RGB LED, i.e. WS2812(B), SK6812, WS2813, (a.k.a NeoPixel). 
 - Filesystem helpers
 
 
@@ -128,7 +142,7 @@ or, if you're using old-fashioned `make`
 ```shell script
 cd your_project_root
 mkdir build && cd build
-cmake .. -DESP_PLATFORM=1 -DCMAKE_TOOLCHAIN_FILE=$IDF_PATH/tools/cmake/toolchain-esp32.cmake && ninja
+cmake .. -DESP_PLATFORM=1 -DCMAKE_TOOLCHAIN_FILE=$IDF_PATH/tools/cmake/toolchain-esp32.cmake && make
 ```
 
 Next, flash your project to the target device.
@@ -254,3 +268,27 @@ int main(int /*argc*/, char** /*argv*/)
 
 }
 ```
+
+## Running CI scripts locally
+
+If you want to test your changes in Smooth, you need to pass the CI on Github. To test your changes on your local system you can use docker:
+
+- to compile the host binaries: `docker-compose run --rm smooth ./CI/build_smooth_host.sh`
+- to run the host unit test: `docker-compose run --rm -w /src/build/host/test/linux_unit_tests smooth ./linux_unit_tests`
+- to compile the esp32 binaries: `docker-compose run --rm smooth ./CI/build_smooth_esp32.sh`
+
+To run these commands at once you can run this script: `./CI/build_test.sh`
+
+### Run a host build with TCP ports
+
+On default `docker-compose` is not opening the ports in in the `run` mode. To open the TCP ports for server testing you need to enter the docker image in this way:
+
+`docker-compose run --service-ports --rm smooth`
+
+### Choose different release branches for the ESP32 build
+
+For the esp32 binaries the mainline branch is used on default. If you want to use a release branch you have to set the environment variable `ESP_IDF_VERSION`.
+Here is an example with the v4.2 release branch:
+`ESP_IDF_VERSION=release-v4.2 docker-compose run --rm smooth ./CI/build_smooth_esp32.sh`
+
+In CI, all compatible branches of IDF are checked on each push and pull request.
