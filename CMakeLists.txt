@@ -20,6 +20,7 @@ limitations under the License.
 cmake_minimum_required(VERSION 3.10)
 set(CMAKE_CXX_STANDARD 17)
 
+
 # Select the test project to build
 set(selected_test_project mqtts)
 
@@ -40,6 +41,7 @@ list(APPEND available_tests
         server_socket_test
         secure_server_socket_test
         http_server_test
+        http_files_upload_test
         destructing_event_queues
         destructing_subscribing_event_queues
         security
@@ -55,6 +57,7 @@ list(APPEND available_tests
         spi_4_line_devices_test
         i2c_dht12_test
         i2c_rtc8563_test
+        i2c_sht30_test
         )
 
 list(FIND available_tests ${selected_test_project} test_found)
